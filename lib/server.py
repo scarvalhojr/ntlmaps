@@ -18,7 +18,7 @@
 #
 
 import socket, thread, sys, signal, getpass
-import proxy_client, www_client, monitor_upstream, ntlm_procs
+import proxy_client, www_client, monitor_upstream, ntlm_procs, utils
 
 #--------------------------------------------------------------
 class AuthProxyServer:
@@ -31,23 +31,43 @@ class AuthProxyServer:
         self.sigLock = thread.allocate_lock() # For locking in the sigHandler
         self.monLock = thread.allocate_lock() # For keeping the monitor thread sane
         self.watchUpstream = 0
+        
+        # if found, convert hashed passwords from hex to string
+        if self.config['NTLM_AUTH']['LM_HASHED_PW']:
+            self.config['NTLM_AUTH']['LM_HASHED_PW'] = utils.hex2str(self.config['NTLM_AUTH']['LM_HASHED_PW'])
+        if self.config['NTLM_AUTH']['NT_HASHED_PW']:
+            self.config['NTLM_AUTH']['NT_HASHED_PW'] = utils.hex2str(self.config['NTLM_AUTH']['NT_HASHED_PW'])
+            
         if not self.config['NTLM_AUTH']['NTLM_TO_BASIC']:
-            if not self.config['NTLM_AUTH']['PASSWORD']:
-                tries = 3
-                print '------------------------'
-                while tries and (not self.config['NTLM_AUTH']['PASSWORD']):
-                    tries = tries - 1
-                    self.config['NTLM_AUTH']['PASSWORD'] = getpass.getpass('Your NT password to be used:')
-            if not self.config['NTLM_AUTH']['PASSWORD']:
-                print 'Sorry. PASSWORD is required, bye.'
-                sys.exit(1)
+            if ((self.config['NTLM_AUTH']['LM_PART'] and not self.config['NTLM_AUTH']['LM_HASHED_PW']) or
+                (self.config['NTLM_AUTH']['NT_PART'] and not self.config['NTLM_AUTH']['NT_HASHED_PW'])):
+                if not self.config['NTLM_AUTH']['PASSWORD']:
+                    tries = 3
+                    print '------------------------'
+                    while tries and (not self.config['NTLM_AUTH']['PASSWORD']):
+                        tries = tries - 1
+                        self.config['NTLM_AUTH']['PASSWORD'] = getpass.getpass('Your NT password to be used:')
+                    if not self.config['NTLM_AUTH']['PASSWORD']:
+                        print 'Sorry. PASSWORD is required, bye.'
+                        sys.exit(1)
         else:
             # TODO: migrate this properly so placeholders aren't required
             self.config['NTLM_AUTH']['USER'] = 'placeholder_username'
             self.config['NTLM_AUTH']['PASSWORD'] = 'placeholder_password'
-        # hashed passwords calculation
-        self.config['NTLM_AUTH']['LM_HASHED_PW'] = ntlm_procs.create_LM_hashed_password(self.config['NTLM_AUTH']['PASSWORD'])
-        self.config['NTLM_AUTH']['NT_HASHED_PW'] = ntlm_procs.create_NT_hashed_password(self.config['NTLM_AUTH']['PASSWORD'])
+            
+        # compute hashed passwords if necessary
+        if self.config['NTLM_AUTH']['LM_PART'] and not self.config['NTLM_AUTH']['LM_HASHED_PW']:
+            self.config['NTLM_AUTH']['LM_HASHED_PW'] = ntlm_procs.create_LM_hashed_password(self.config['NTLM_AUTH']['PASSWORD'])
+        if self.config['NTLM_AUTH']['NT_PART'] and not self.config['NTLM_AUTH']['NT_HASHED_PW']:
+            self.config['NTLM_AUTH']['NT_HASHED_PW'] = ntlm_procs.create_NT_hashed_password(self.config['NTLM_AUTH']['PASSWORD'])
+        
+        # if requested. compute and print out password hashes and exit
+        if self.config['NTLM_AUTH']['PRINT_PW_HASH_AND_EXIT']:
+            if self.config['NTLM_AUTH']['LM_PART']:
+                print 'LM_HASHED_PW: %s' % utils.str2hex(self.config['NTLM_AUTH']['LM_HASHED_PW'])
+            if self.config['NTLM_AUTH']['NT_PART']:
+                print 'NT_HASHED_PW: %s' % utils.str2hex(self.config['NTLM_AUTH']['NT_HASHED_PW'])
+            sys.exit(0)
 
     #--------------------------------------------------------------
     def run(self):

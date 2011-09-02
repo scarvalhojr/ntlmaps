@@ -70,6 +70,7 @@ def arrange(conf):
     #conf['NTLM']['FULL_NTLM'] = makeInt(conf['NTLM']['FULL_NTLM'], 'FULL_NTLM')
     conf['NTLM_AUTH']['LM_PART'] = makeInt(conf['NTLM_AUTH']['LM_PART'], 'LM_PART')
     conf['NTLM_AUTH']['NT_PART'] = makeInt(conf['NTLM_AUTH']['NT_PART'], 'NT_PART')
+    conf['NTLM_AUTH']['PRINT_PW_HASH_AND_EXIT'] = makeInt(conf['NTLM_AUTH']['PRINT_PW_HASH_AND_EXIT'], 'PRINT_PW_HASH_AND_EXIT')
     conf['NTLM_AUTH']['NTLM_TO_BASIC'] = makeInt(conf['NTLM_AUTH']['NTLM_TO_BASIC'], 'NTLM_TO_BASIC')
     if not conf['NTLM_AUTH']['NT_DOMAIN']:
         print "ERROR: NT DOMAIN must be set."
