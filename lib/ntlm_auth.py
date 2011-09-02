@@ -286,11 +286,15 @@ class ntlm_auther:
             connection.logger.log('*** Using UNICODE stings.\n')
 
 
-        if connection.config['NTLM_AUTH']['LM_HASHED_PW'] and connection.config['NTLM_AUTH']['NT_HASHED_PW']:
+        if connection.config['NTLM_AUTH']['LM_HASHED_PW']:
             env['LM_HASHED_PW'] = connection.config['NTLM_AUTH']['LM_HASHED_PW']
+            connection.logger.log('*** NTLM hashed LM password found.\n')
+            
+        if connection.config['NTLM_AUTH']['NT_HASHED_PW']:
             env['NT_HASHED_PW'] = connection.config['NTLM_AUTH']['NT_HASHED_PW']
+            connection.logger.log('*** NTLM hashed NT password found.\n')
 
-            connection.logger.log('*** NTLM hashed passwords found.\n')
+            
 
         # Test params
         if connection.config['NTLM_AUTH'].has_key('NTLM_MODE'):

@@ -64,9 +64,9 @@ class AuthProxyServer:
         # if requested. compute and print out password hashes and exit
         if self.config['NTLM_AUTH']['PRINT_PW_HASH_AND_EXIT']:
             if self.config['NTLM_AUTH']['LM_PART']:
-                print 'LM_HASHED_PW: %s' % utils.str2hex(self.config['NTLM_AUTH']['LM_HASHED_PW'])
+                print 'LM_HASHED_PW:%s' % utils.str2hex(self.config['NTLM_AUTH']['LM_HASHED_PW'])
             if self.config['NTLM_AUTH']['NT_PART']:
-                print 'NT_HASHED_PW: %s' % utils.str2hex(self.config['NTLM_AUTH']['NT_HASHED_PW'])
+                print 'NT_HASHED_PW:%s' % utils.str2hex(self.config['NTLM_AUTH']['NT_HASHED_PW'])
             sys.exit(0)
 
     #--------------------------------------------------------------
